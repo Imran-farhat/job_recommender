@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Recommendation System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Smart Job Matcher</h1>
+    
+    {% if error %}
+    <div class="error-message">
+      <h3>⚠️ Error:</h3>
+      <p>{{ error }}</p>
+      <p>Please check your JSON format and try again.</p>
+    </div>
+    {% endif %}
+    
+    <div class="form-container">
+      <form action="/recommend" method="post">
+        <label for="preferences">Enter Your Job Preferences (JSON Format):</label>
+        
+        <div class="instructions-panel">
+          <h4>📝 How to Customize Your Profile:</h4>
+          <div class="instruction-grid">
+            <div class="instruction-item">
+              <strong>🎯 Values:</strong> What motivates you at work
+            </div>
+            <div class="instruction-item">
+              <strong>💼 Role Types:</strong> Employment type preferences
+            </div>
+            <div class="instruction-item">
+              <strong>🏷️ Titles:</strong> Job titles you're targeting (one per line)
+            </div>
+            <div class="instruction-item">
+              <strong>📍 Locations:</strong> Where you want to work
+            </div>
+            <div class="instruction-item">
+              <strong>📈 Role Level:</strong> Your experience level
+            </div>
+            <div class="instruction-item">
+              <strong>👥 Leadership:</strong> Individual Contributor or Team Lead
+            </div>
+            <div class="instruction-item">
+              <strong>🏢 Company Size:</strong> Preferred company sizes
+            </div>
+            <div class="instruction-item">
+              <strong>🏭 Industries:</strong> Target industries
+            </div>
+            <div class="instruction-item">
+              <strong>🛠️ Skills:</strong> Your technical & soft skills
+            </div>
+            <div class="instruction-item">
+              <strong>💰 Min Salary:</strong> Your minimum salary expectation
+            </div>
+          </div>
+        </div>
+        
+        <div class="example-buttons">
+          <h3>🎯 Quick Examples - Click to Load:</h3>
+          <button type="button" onclick="loadExample('tech')" class="example-btn">💻 Tech Developer</button>
+          <button type="button" onclick="loadExample('designer')" class="example-btn">🎨 UX Designer</button>
+          <button type="button" onclick="loadExample('marketing')" class="example-btn">📈 Marketing Pro</button>
+          <button type="button" onclick="loadExample('data')" class="example-btn">📊 Data Scientist</button>
+          <button type="button" onclick="loadExample('sales')" class="example-btn">💼 Sales Executive</button>
+          <button type="button" onclick="loadJobPosting()" class="example-btn job-posting-btn">📋 Job Posting Format</button>
+          <button type="button" onclick="clearTemplate()" class="example-btn clear-btn">🧹 Clear & Start Fresh</button>
+        </div>
+        
+        <textarea id="preferences" name="preferences" rows="20" cols="80" placeholder="🚀 SMART CONVERTER - Enter ANY JSON format! Examples:
+
+📋 JOB POSTING FORMAT:
+{
+  'jobTitle': 'Software Engineer',
+  'company': {'location': 'Chennai'},
+  'requirements': {'skills': ['JavaScript', 'React']},
+  'salary': {'range': '600000-1200000'}
+}
+
+👤 CANDIDATE PROFILE FORMAT:
+{
+  'name': 'John Doe',
+  'skills': ['Python', 'Django', 'AWS'],
+  'experience': '3 years',
+  'location': 'Remote',
+  'expectedSalary': 100000
+}
+
+🎯 SIMPLE FORMAT:
+{
+  'skills': ['JavaScript', 'React'],
+  'location': 'Remote',
+  'salary': 120000,
+  'job_title': 'Frontend Developer'
+}
+
+The system will automatically convert your format!">
+{
+  "values": [
+    "Your Core Work Value 1",
+    "Your Core Work Value 2",
+    "Your Core Work Value 3"
+  ],
+  "role_types": [
+    "Full-Time"
+  ],
+  "titles": [
+    "Your Target Job Title 1",
+    "Your Target Job Title 2"
+  ],
+  "locations": [
+    "Your Preferred Location",
+    "Remote"
+  ],
+  "role_level": [
+    "Your Experience Level"
+  ],
+  "leadership_preference": "Individual Contributor",
+  "company_size": [
+    "Your Preferred Company Size"
+  ],
+  "industries": [
+    "Your Target Industry 1",
+    "Your Target Industry 2"
+  ],
+  "skills": [
+    "Your Primary Skill",
+    "Your Secondary Skill",
+    "Your Technology Stack"
+  ],
+  "min_salary": 0
+}
+        </textarea>
+        <button type="submit">🔍 Find My Perfect Jobs</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Different example profiles
+    const examples = {
+      tech: {
+        "values": [
+          "Innovation & Creativity",
+          "Remote Work Flexibility", 
+          "Learning & Growth"
+        ],
+        "role_types": ["Full-Time"],
+        "titles": [
+          "Software Engineer",
+          "Frontend Developer",
+          "Full Stack Developer"
+        ],
+        "locations": [
+          "Remote",
+          "San Francisco", 
+          "Austin"
+        ],
+        "role_level": [
+          "Mid-Level (3 to 5 years)",
+          "Senior (5 to 8 years)"
+        ],
+        "leadership_preference": "Individual Contributor",
+        "company_size": [
+          "11-50 Employees",
+          "51-200 Employees"
+        ],
+        "industries": [
+          "Technology",
+          "Fintech",
+          "E-commerce"
+        ],
+        "skills": [
+          "JavaScript",
+          "React",
+          "Node.js",
+          "Python",
+          "AWS"
+        ],
+        "min_salary": 120000
+      },
+      designer: {
+        "values": [
+          "Creative Freedom",
+          "Work-Life Balance",
+          "Mentorship & Career Development"
+        ],
+        "role_types": [
+          "Full-Time",
+          "Contract"
+        ],
+        "titles": [
+          "UI/UX Designer",
+          "Product Designer",
+          "Senior Product Designer"
+        ],
+        "locations": [
+          "Remote in USA",
+          "New York City",
+          "Los Angeles"
+        ],
+        "role_level": ["Senior (5 to 8 years)"],
+        "leadership_preference": "Individual Contributor",
+        "company_size": [
+          "51-200 Employees",
+          "201-500 Employees"
+        ],
+        "industries": [
+          "Design",
+          "AI & Machine Learning",
+          "Consumer Products"
+        ],
+        "skills": [
+          "Figma",
+          "UI/UX Design",
+          "Wireframing",
+          "Prototyping",
+          "Adobe Creative Suite"
+        ],
+        "min_salary": 130000
+      },
+      marketing: {
+        "values": [
+          "Team Collaboration",
+          "Growth Opportunities",
+          "Impactful Work"
+        ],
+        "role_types": ["Full-Time"],
+        "titles": [
+          "Marketing Manager",
+          "Digital Marketing Specialist",
+          "Content Marketing Manager"
+        ],
+        "locations": [
+          "Remote",
+          "Chicago",
+          "Boston",
+          "Seattle"
+        ],
+        "role_level": [
+          "Mid-Level (3 to 5 years)",
+          "Senior (5 to 8 years)"
+        ],
+        "leadership_preference": "Team Lead",
+        "company_size": [
+          "201-500 Employees",
+          "501-1000 Employees"
+        ],
+        "industries": [
+          "Marketing & Advertising",
+          "SaaS",
+          "Consumer Goods"
+        ],
+        "skills": [
+          "Digital Marketing",
+          "SEO",
+          "Content Strategy",
+          "Analytics",
+          "Social Media"
+        ],
+        "min_salary": 85000
+      },
+      data: {
+        "values": [
+          "Analytical Challenges",
+          "Continuous Learning",
+          "Data-Driven Impact"
+        ],
+        "role_types": ["Full-Time"],
+        "titles": [
+          "Data Scientist",
+          "Senior Data Analyst",
+          "Machine Learning Engineer"
+        ],
+        "locations": [
+          "Remote",
+          "San Francisco",
+          "New York City",
+          "Seattle"
+        ],
+        "role_level": [
+          "Senior (5 to 8 years)",
+          "Expert (8+ years)"
+        ],
+        "leadership_preference": "Individual Contributor",
+        "company_size": [
+          "201-500 Employees",
+          "1000+ Employees"
+        ],
+        "industries": [
+          "Technology",
+          "Healthcare",
+          "Finance",
+          "AI & Machine Learning"
+        ],
+        "skills": [
+          "Python",
+          "SQL",
+          "Machine Learning",
+          "Tableau",
+          "R",
+          "TensorFlow"
+        ],
+        "min_salary": 140000
+      },
+      sales: {
+        "values": [
+          "Performance-Based Rewards",
+          "Relationship Building",
+          "Growth Opportunities"
+        ],
+        "role_types": ["Full-Time"],
+        "titles": [
+          "Sales Executive",
+          "Account Manager",
+          "Business Development Manager"
+        ],
+        "locations": [
+          "Remote",
+          "New York City",
+          "Miami",
+          "Dallas"
+        ],
+        "role_level": [
+          "Mid-Level (3 to 5 years)",
+          "Senior (5 to 8 years)"
+        ],
+        "leadership_preference": "Individual Contributor",
+        "company_size": [
+          "51-200 Employees",
+          "201-500 Employees",
+          "501-1000 Employees"
+        ],
+        "industries": [
+          "SaaS",
+          "Technology",
+          "Real Estate",
+          "Financial Services"
+        ],
+        "skills": [
+          "Sales Strategy",
+          "CRM",
+          "Negotiation",
+          "Lead Generation",
+          "Customer Relations"
+        ],
+        "min_salary": 75000
+      }
+    };
+
+    // Load job posting format function
+    function loadJobPosting() {
+      const textarea = document.getElementById('preferences');
+      textarea.value = `{
+  "jobTitle": "Software Engineer",
+  "company": {
+    "name": "Tech Innovators Inc.",
+    "location": "Chennai, Tamil Nadu, India"
+  },
+  "jobDescription": "We are looking for a skilled Software Engineer to develop and maintain web applications.",
+  "responsibilities": [
+    "Write clean, scalable code using modern programming languages.",
+    "Collaborate with cross-functional teams to define, design, and ship new features.",
+    "Troubleshoot, debug, and upgrade existing systems."
+  ],
+  "requirements": {
+    "education": "Bachelor's degree in Computer Science or related field",
+    "experience": "2+ years of experience in software development",
+    "skills": [
+      "Proficiency in JavaScript, Python, or Java",
+      "Experience with frameworks like React or Angular",
+      "Strong problem-solving and communication skills"
+    ]
+  },
+  "employmentType": "Full-time",
+  "salary": {
+    "currency": "INR",
+    "range": "600000-1200000 per annum"
+  },
+  "applicationDeadline": "2025-09-30",
+  "contact": {
+    "email": "hr@techinnovators.com",
+    "phone": "+91-9876543210"
+  }
+}`;
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+      
+      // Visual feedback
+      textarea.style.border = '2px solid #9C27B0';
+      setTimeout(() => {
+        textarea.style.border = '2px solid #667eea';
+      }, 1000);
+    }
+
+    // Clear template function
+    function clearTemplate() {
+      const textarea = document.getElementById('preferences');
+      textarea.value = `{
+  "values": [
+    "Your Core Work Value 1",
+    "Your Core Work Value 2",
+    "Your Core Work Value 3"
+  ],
+  "role_types": [
+    "Full-Time"
+  ],
+  "titles": [
+    "Your Target Job Title 1",
+    "Your Target Job Title 2"
+  ],
+  "locations": [
+    "Your Preferred Location",
+    "Remote"
+  ],
+  "role_level": [
+    "Your Experience Level"
+  ],
+  "leadership_preference": "Individual Contributor",
+  "company_size": [
+    "Your Preferred Company Size"
+  ],
+  "industries": [
+    "Your Target Industry 1",
+    "Your Target Industry 2"
+  ],
+  "skills": [
+    "Your Primary Skill",
+    "Your Secondary Skill",
+    "Your Technology Stack"
+  ],
+  "min_salary": 0
+}`;
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+      
+      // Visual feedback
+      textarea.style.border = '2px solid #FF9800';
+      setTimeout(() => {
+        textarea.style.border = '2px solid #667eea';
+      }, 1000);
+    }
+
+    // Load example function
+    function loadExample(type) {
+      const textarea = document.getElementById('preferences');
+      textarea.value = JSON.stringify(examples[type], null, 2);
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+      
+      // Add visual feedback
+      textarea.style.border = '2px solid #4CAF50';
+      setTimeout(() => {
+        textarea.style.border = '2px solid #667eea';
+      }, 1000);
+    }
+
+    // Auto-resize textarea
+    const textarea = document.getElementById('preferences');
+    const button = document.querySelector('button[type="submit"]');
+    
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = this.scrollHeight + 'px';
+    });
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+      try {
+        JSON.parse(textarea.value);
+        button.innerHTML = '🔄 Processing...';
+        button.disabled = true;
+      } catch (error) {
+        e.preventDefault();
+        alert('Please enter valid JSON format. Check your brackets, quotes, and commas.');
+        textarea.focus();
+      }
+    });
+  </script>
+</body>
+</html>

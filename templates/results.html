@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Job Matches</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">← Back to Search</a>
+    <h1>🎉 Your Perfect Job Matches</h1>
+    
+    {% if results %}
+    <div class="job-list">
+      {% for job in results %}
+      <div class="job-card">
+        <div class="job-title">{{ job.job_title }}</div>
+        <div class="company-name">at {{ job.company }}</div>
+        
+        {% set score = job.match_score | float %}
+        {% if score >= 90 %}
+          <div class="match-score score-excellent">🌟 {{ "%.1f"|format(score) }}% Match</div>
+        {% elif score >= 75 %}
+          <div class="match-score score-good">⭐ {{ "%.1f"|format(score) }}% Match</div>
+        {% elif score >= 60 %}
+          <div class="match-score score-fair">👍 {{ "%.1f"|format(score) }}% Match</div>
+        {% else %}
+          <div class="match-score score-poor">💡 {{ "%.1f"|format(score) }}% Match</div>
+        {% endif %}
+        
+        <details>
+          <summary>📊 View Detailed Breakdown</summary>
+          <ul class="breakdown-list">
+            {% for key, val in job.breakdown.items() %}
+              <li>
+                <span class="breakdown-category">{{ key.replace('_', ' ') }}</span>
+                <span class="breakdown-score">{{ "%.1f"|format(val) }}%</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </details>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-results">
+      <h2>😔 No matching jobs found</h2>
+      <p>Try adjusting your preferences or expanding your criteria.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    // Add smooth animations
+    document.addEventListener('DOMContentLoaded', function() {
+      const jobCards = document.querySelectorAll('.job-card');
+      jobCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.style.animation = 'slideInUp 0.6s ease forwards';
+      });
+    });
+
+    // Add CSS for animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .job-card {
+        opacity: 0;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
